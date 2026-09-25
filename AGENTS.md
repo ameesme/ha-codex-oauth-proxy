@@ -69,6 +69,10 @@ Inspect a version with `npm pack openai-oauth@<v>` plus the `@openai-oauth/core`
   looks odd but is harmless; keep fatal messages as the first error line.
 - **Alpine's `nginx` package is not built with `--with-debug`**, so `error_log ... debug` is not a
   usable level. `nginx/run` maps add-on `debug` to nginx `info`.
+- **Do not reintroduce a `map` keyed on `$http_authorization`.** `map_hash_bucket_size` defaults to
+  64, so `"Bearer " + api_key` fails config parsing with `could not build map_hash` once the key
+  passes ~56 characters — which a generated key easily does. The Bearer check is a direct string
+  comparison for that reason. Test the auth gate with a long key, not a short one.
 - Alpine 3.21 ships nodejs 22, which satisfies the package's `>=20` engine requirement.
 
 ## Security invariants

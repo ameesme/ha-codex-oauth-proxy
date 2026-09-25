@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1] - 2026-09-25
+
+### Fixed
+
+- nginx failed to start with `could not build map_hash` when `api_key` was longer than
+  about 56 characters. The Bearer check is now a direct string comparison instead of a
+  `map`, which removes the key length ceiling entirely.
+
 ## [0.1.0] - 2026-09-15
 
 ### Added

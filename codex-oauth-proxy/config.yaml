@@ -1,6 +1,6 @@
 name: Codex OAuth Proxy
 description: OpenAI-compatible /v1 endpoint backed by your ChatGPT subscription, protected by a Bearer API key
-version: "0.1.0"
+version: "0.1.1"
 slug: codex_oauth_proxy
 url: https://github.com/ameesme/ha-codex-oauth-proxy
 arch:
