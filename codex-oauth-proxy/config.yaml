@@ -1,0 +1,27 @@
+name: Codex OAuth Proxy
+description: OpenAI-compatible /v1 endpoint backed by your ChatGPT subscription, protected by a Bearer API key
+version: "0.1.0"
+slug: codex_oauth_proxy
+url: https://github.com/ameesme/ha-codex-oauth-proxy
+arch:
+  - amd64
+  - aarch64
+init: false
+startup: services
+boot: auto
+ports:
+  10531/tcp: 10531
+ports_description:
+  10531/tcp: OpenAI-compatible API (Bearer token required)
+options:
+  auth_json: ""
+  api_key: ""
+  models: ""
+  codex_version: ""
+  log_level: info
+schema:
+  auth_json: password?
+  api_key: password
+  models: str?
+  codex_version: str?
+  log_level: list(debug|info|warning|error)

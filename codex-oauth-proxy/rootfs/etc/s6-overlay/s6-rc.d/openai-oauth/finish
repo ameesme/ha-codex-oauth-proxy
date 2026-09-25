@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+
+if [[ "${1}" -ne 0 ]] && [[ "${1}" -ne 256 ]]; then
+    bashio::log.warning "openai-oauth exited with code ${1}, halting the add-on."
+    exec /run/s6/basedir/bin/halt
+fi

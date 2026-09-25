@@ -1,0 +1,37 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+
+declare api_key
+declare log_level
+
+fatal() {
+    bashio::log.fatal "$1"
+    exec /run/s6/basedir/bin/halt
+}
+
+if ! bashio::config.has_value 'api_key'; then
+    fatal "Option 'api_key' is empty. Set a long random value; it is what clients must send as 'Authorization: Bearer <key>'."
+fi
+
+api_key="$(bashio::config 'api_key')"
+
+# The key is substituted into nginx.conf, so restrict it to characters that cannot
+# close a quoted string or terminate a directive there.
+if [[ ! "${api_key}" =~ ^[A-Za-z0-9._~-]{16,}$ ]]; then
+    fatal "Option 'api_key' must be at least 16 characters long and use only A-Z a-z 0-9 . _ ~ -"
+fi
+
+# Alpine's nginx package is not built with --with-debug, so 'debug' is not a usable level.
+case "$(bashio::config 'log_level' 'info')" in
+    debug | info) log_level="info" ;;
+    warning) log_level="warn" ;;
+    *) log_level="error" ;;
+esac
+
+sed \
+    -e "s|__API_KEY__|${api_key}|" \
+    -e "s|__LOG_LEVEL__|${log_level}|" \
+    /etc/nginx/nginx.conf.template >/etc/nginx/nginx.conf
+
+bashio::log.info "Starting nginx on port 10531..."
+exec nginx -c /etc/nginx/nginx.conf

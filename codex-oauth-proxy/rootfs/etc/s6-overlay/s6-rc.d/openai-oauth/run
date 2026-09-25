@@ -1,0 +1,20 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+
+export PROXY_HOST="127.0.0.1"
+export PROXY_PORT="10532"
+export PROXY_AUTH_FILE="/data/auth.json"
+export PROXY_MODELS
+export PROXY_CODEX_VERSION
+export PROXY_LOG_LEVEL
+
+PROXY_MODELS="$(bashio::config 'models' '')"
+PROXY_CODEX_VERSION="$(bashio::config 'codex_version' '')"
+PROXY_LOG_LEVEL="$(bashio::config 'log_level' 'info')"
+
+if bashio::var.has_value "${PROXY_MODELS}"; then
+    bashio::log.info "Restricting models to: ${PROXY_MODELS}"
+fi
+
+bashio::log.info "Starting openai-oauth on ${PROXY_HOST}:${PROXY_PORT}..."
+exec node /opt/codex-oauth-proxy/server.mjs

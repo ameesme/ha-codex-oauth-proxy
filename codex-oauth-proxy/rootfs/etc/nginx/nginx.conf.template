@@ -1,0 +1,54 @@
+daemon off;
+user nginx;
+worker_processes 1;
+pid /run/nginx.pid;
+error_log /dev/stderr __LOG_LEVEL__;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    server_tokens off;
+    default_type application/json;
+
+    # Deliberately omits the Authorization header.
+    log_format proxy '$remote_addr $request_method $uri -> $status ${body_bytes_sent}b ${request_time}s';
+    access_log /dev/stdout proxy;
+
+    map $http_authorization $codex_auth_ok {
+        default                 0;
+        "Bearer __API_KEY__"    1;
+    }
+
+    server {
+        listen 10531 default_server;
+
+        client_max_body_size 100m;
+
+        # Clients here speak OpenAI, so nginx's HTML error pages are not useful.
+        error_page 502 504 = @upstream_down;
+
+        location @upstream_down {
+            return 502 '{"error":{"message":"The Codex proxy is not accepting connections yet. Check the add-on log.","type":"server_error","code":"upstream_unavailable"}}';
+        }
+
+        location / {
+            if ($codex_auth_ok = 0) {
+                return 401 '{"error":{"message":"Missing or invalid Authorization header.","type":"invalid_request_error","code":"invalid_api_key"}}';
+            }
+
+            proxy_pass http://127.0.0.1:10532;
+            proxy_http_version 1.1;
+
+            # Without these three, SSE arrives as a single chunk once the upstream closes.
+            proxy_buffering off;
+            proxy_request_buffering off;
+            proxy_set_header Connection "";
+
+            proxy_set_header Host $host;
+            proxy_read_timeout 3600s;
+            proxy_send_timeout 3600s;
+        }
+    }
+}
