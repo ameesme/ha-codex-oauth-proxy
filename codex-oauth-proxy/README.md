@@ -37,6 +37,28 @@ signed in with an API key rather than your ChatGPT account and this add-on is no
 | `models` | no | Comma-separated allowlist, e.g. `gpt-5.6-terra,gpt-5.6-sol`. Empty means everything your account exposes. Setting this also removes a network call from cold start. |
 | `codex_version` | no | Pin the Codex client version reported upstream, e.g. `0.144.1`. Empty resolves the latest from npm with a built-in fallback. |
 | `log_level` | no | `debug` also logs one line per incoming request. |
+| `trace` | no | Writes full request bodies to `/share/codex-oauth-proxy/trace.jsonl`. Off by default, see below. |
+
+## Tracing
+
+`trace: true` appends one JSON object per request to `/share/codex-oauth-proxy/trace.jsonl`,
+with the raw body nested as a JSON string:
+
+```python
+import json
+for line in open("/share/codex-oauth-proxy/trace.jsonl"):
+    rec = json.loads(line)
+    body = json.loads(rec["body"])
+    print(rec["time"], body["model"], len(body["messages"]), "messages")
+```
+
+Each request carries the whole conversation so far, so assistant turns and tool results are
+captured as well and a loop can be replayed exactly. Only the final assistant turn of a run
+is missing.
+
+Leave it off unless you are debugging. The file holds every prompt verbatim, it grows with
+the square of a conversation's length, and `/share` is readable by any add-on that maps it.
+The Authorization header is not recorded.
 
 Generate an API key with:
 

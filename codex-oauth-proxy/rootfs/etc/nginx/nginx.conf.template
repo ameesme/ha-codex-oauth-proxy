@@ -16,6 +16,9 @@ http {
     log_format proxy '$remote_addr $request_method $uri -> $status ${body_bytes_sent}b ${request_time}s';
     access_log /dev/stdout proxy;
 
+    # The body is nested as a JSON string, so a reader parses it twice.
+    log_format trace escape=json '{"time":"$time_iso8601","uri":"$uri","status":$status,"ms":$request_time,"body":"$request_body"}';
+
     server {
         listen 10531 default_server;
 
@@ -52,6 +55,8 @@ http {
             if ($http_authorization != "Bearer __API_KEY__") {
                 return 401 '{"error":{"message":"Missing or invalid Authorization header.","type":"invalid_request_error","code":"invalid_api_key"}}';
             }
+
+            __TRACE__
 
             proxy_pass http://127.0.0.1:10532;
         }

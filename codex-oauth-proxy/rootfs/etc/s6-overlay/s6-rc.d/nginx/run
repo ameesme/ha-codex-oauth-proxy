@@ -3,6 +3,8 @@
 
 declare api_key
 declare log_level
+declare trace=""
+readonly TRACE_DIR="/share/codex-oauth-proxy"
 
 fatal() {
     bashio::log.fatal "$1"
@@ -28,9 +30,19 @@ case "$(bashio::config 'log_level' 'info')" in
     *) log_level="error" ;;
 esac
 
+# $request_body is only populated while the body is still in memory, so tracing has to
+# buffer the request and keep a buffer large enough for a full conversation.
+if bashio::config.true 'trace'; then
+    mkdir -p "${TRACE_DIR}"
+    chown nginx "${TRACE_DIR}"
+    trace="access_log ${TRACE_DIR}/trace.jsonl trace; proxy_request_buffering on; client_body_buffer_size 8m;"
+    bashio::log.warning "Option 'trace' is on: full request bodies, prompts included, are written to ${TRACE_DIR}/trace.jsonl. Turn it off when you are done."
+fi
+
 sed \
     -e "s|__API_KEY__|${api_key}|" \
     -e "s|__LOG_LEVEL__|${log_level}|" \
+    -e "s|__TRACE__|${trace}|" \
     /etc/nginx/nginx.conf.template >/etc/nginx/nginx.conf
 
 bashio::log.info "Starting nginx on port 10531..."

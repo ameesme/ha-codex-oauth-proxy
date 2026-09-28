@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.3] - 2026-09-28
+
+### Added
+
+- `trace: true` writes every inbound request body to `/share/codex-oauth-proxy/trace.jsonl`
+  as one JSON object per line, with the body nested as a JSON string. That captures the
+  system prompt, the tool schemas and the full message history, so an agent loop can be
+  replayed exactly. Assistant turns are included too, because each request carries the
+  previous ones. Off by default: the file contains whatever the client sent, prompts and
+  all, and `/share` is readable by every add-on that maps it.
+
 ## [0.1.2] - 2026-09-28
 
 ### Added
