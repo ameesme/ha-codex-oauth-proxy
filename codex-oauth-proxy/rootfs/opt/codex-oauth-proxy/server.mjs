@@ -26,6 +26,10 @@ const requestLogger = (event) => {
       "info",
       `${event.requestId} <- ${event.status} in ${event.durationMs}ms (in=${event.usage.inputTokens ?? 0} out=${event.usage.outputTokens ?? 0})`,
     );
+    log(
+      "debug",
+      `${event.requestId} tokens in=${event.usage.inputTokens ?? 0} cached=${event.usage.cachedInputTokens ?? 0} out=${event.usage.outputTokens ?? 0} reasoning=${event.usage.reasoningTokens ?? 0} total=${event.usage.totalTokens ?? 0} finish=${event.finishReason ?? "?"}`,
+    );
   } else {
     log("error", `${event.requestId} failed after ${event.durationMs}ms: ${event.message}`);
   }

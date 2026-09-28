@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.2] - 2026-09-28
+
+### Added
+
+- `log_level: debug` now logs the full token breakdown per response, including reasoning
+  and cached input tokens.
+
+### Changed
+
+- Dropped source maps, type declarations and the unused `openai-oauth` CLI (with its
+  `yargs` dependency) from the image, cutting `node_modules` from 31 MB to 21 MB.
+
+### Fixed
+
+- `reasoningEffort` was silently dropped for the `gpt-6` models, so they ran without
+  reasoning. `@openai-oauth/ai-sdk` hard-pins `@ai-sdk/openai` 3.0.41, which predates
+  that family; an npm override now installs 3.0.119.
+
 ## [0.1.1] - 2026-09-25
 
 ### Fixed
