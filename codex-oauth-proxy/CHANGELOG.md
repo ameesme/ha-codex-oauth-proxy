@@ -9,6 +9,8 @@
 
 ### Changed
 
+- `/v1/models` no longer requires the Bearer key, so a client can list models before it has
+  one configured. Every other endpoint, inference included, still requires it.
 - Dropped source maps, type declarations and the unused `openai-oauth` CLI (with its
   `yargs` dependency) from the image, cutting `node_modules` from 31 MB to 21 MB.
 

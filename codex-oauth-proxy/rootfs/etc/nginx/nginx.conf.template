@@ -21,11 +21,28 @@ http {
 
         client_max_body_size 100m;
 
+        proxy_http_version 1.1;
+
+        # Without these three, SSE arrives as a single chunk once the upstream closes.
+        proxy_buffering off;
+        proxy_request_buffering off;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $host;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+
         # Clients here speak OpenAI, so nginx's HTML error pages are not useful.
         error_page 502 504 = @upstream_down;
 
         location @upstream_down {
             return 502 '{"error":{"message":"The Codex proxy is not accepting connections yet. Check the add-on log.","type":"server_error","code":"upstream_unavailable"}}';
+        }
+
+        # Clients routinely probe the catalogue before they have a key configured, and
+        # upstream caches it for five minutes, so an open read cannot be used to burn quota.
+        location ~ ^/(v1/)?models/?$ {
+            proxy_pass http://127.0.0.1:10532;
         }
 
         location / {
@@ -37,16 +54,6 @@ http {
             }
 
             proxy_pass http://127.0.0.1:10532;
-            proxy_http_version 1.1;
-
-            # Without these three, SSE arrives as a single chunk once the upstream closes.
-            proxy_buffering off;
-            proxy_request_buffering off;
-            proxy_set_header Connection "";
-
-            proxy_set_header Host $host;
-            proxy_read_timeout 3600s;
-            proxy_send_timeout 3600s;
         }
     }
 }

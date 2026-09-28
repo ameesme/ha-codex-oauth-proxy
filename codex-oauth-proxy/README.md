@@ -12,7 +12,8 @@ The protocol work is done by [`EvanZhouDev/openai-oauth`](https://github.com/Eva
 credential persistence.
 
 Endpoints passed through: `/v1/models`, `/v1/chat/completions`, `/v1/responses`,
-`/v1/images/generations`, `/v1/images/edits`.
+`/v1/images/generations`, `/v1/images/edits`. All of them require the Bearer key except
+`/v1/models`, which is open so a client can list models before it has one configured.
 
 ## Setup
 
@@ -94,10 +95,10 @@ KEY=<your api_key>
 HOST=<ha-host-ip>
 
 # Auth gate rejects unauthenticated calls
-curl -si "http://$HOST:10531/v1/models" | head -1                  # HTTP/1.1 401 Unauthorized
+curl -si "http://$HOST:10531/v1/chat/completions" -d '{}' | head -1   # HTTP/1.1 401 Unauthorized
 
-# Model list
-curl -s "http://$HOST:10531/v1/models" -H "Authorization: Bearer $KEY" | jq '.data[].id'
+# Model list, deliberately open so clients can probe before they hold a key
+curl -s "http://$HOST:10531/v1/models" | jq '.data[].id'
 
 # Completion
 curl -s "http://$HOST:10531/v1/chat/completions" \
